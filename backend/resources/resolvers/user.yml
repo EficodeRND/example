@@ -1,0 +1,6 @@
+Query.user:
+  kind: UNIT
+  dataSource: Lambda_users
+Query.getUser:
+  kind: UNIT
+  dataSource: Lambda_users

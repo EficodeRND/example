@@ -1,5 +1,4 @@
 localstack
-pylint
 invoke
 pytest
 awscli-local

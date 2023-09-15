@@ -4,3 +4,8 @@ Resources:
     Properties:
       GroupName: SYSADMIN
       UserPoolId: !Ref CognitoUserPoolUserPool
+  UserGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: USER
+      UserPoolId: !Ref CognitoUserPoolUserPool

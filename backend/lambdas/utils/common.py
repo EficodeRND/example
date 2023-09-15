@@ -10,8 +10,26 @@ from uuid import UUID
 
 from utils import dt_utils
 
+GROUP_SYSADMIN: str = 'SYSADMIN'
+GROUP_USER: str = 'USER'
+
+SUPPORTED_GROUPS = {
+    GROUP_SYSADMIN,
+    GROUP_USER
+}
+
+PROTECTED_GROUPS = {
+    GROUP_SYSADMIN
+}
+
+SUPPORTED_EMAIL_TYPES = {
+    'REPORT_PUBLISHED'
+}
+
 
 def serialize_object(value, default: Callable = None, **kwargs):  # pylint:disable=too-many-return-statements
+    if value is None:
+        return None
     if isinstance(value, UUID):
         return str(value)
     if isinstance(value, datetime):
@@ -211,7 +229,7 @@ def build_result_from_dict(result_dict: dict):
 
 
 def get_boolean(value: str) -> bool:
-    if value is True or value in ('true', 'True'):
+    if value is True or value in ('true', 'True', '1'):
         return True
     return False
 

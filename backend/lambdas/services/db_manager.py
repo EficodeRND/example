@@ -86,4 +86,3 @@ def with_db_session(fn):
                 db.session.rollback()
                 raise ServiceException("Internal server error") from e
     return wrapper
-

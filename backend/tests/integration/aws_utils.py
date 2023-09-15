@@ -2,28 +2,33 @@ import json
 import logging as log
 import os
 from dataclasses import dataclass
+from typing import Generator
 from uuid import uuid4
 
 import boto3
-from gql import gql, Client
-from gql.dsl import dsl_gql
 from gql.transport.aiohttp import AIOHTTPTransport
 from gql.transport.appsync_auth import AppSyncJWTAuthentication
-from gql.transport.exceptions import TransportQueryError
+from gql.transport.appsync_websockets import AppSyncWebsocketsTransport
 from random_username.generate import generate_username
 
 from tests.integration.conftest import TestContext
+from utils import gql_utils
 from utils.common import Singleton
+from utils.gql_utils import query_gql
+
+from gql import gql, Client
 
 GROUP_SYSADMIN: str = 'LOCAL_SYSADMIN'
+GROUP_USER: str = 'LOCAL_USER'
 
-ALL_GROUPS: list[str] = [GROUP_SYSADMIN]
+ALL_GROUPS: list[str] = [GROUP_SYSADMIN, GROUP_USER]
 
 
 @dataclass
 class User:
     username: str
     password: str
+    email: str
     user_pool_id: str
     client_id: str
     token: str = None
@@ -45,16 +50,25 @@ class AWSUtils(metaclass=Singleton):
             region_name=ctx.region
         )
 
-        if os.path.isfile('schema.graphql'):
-            path = ''
+        log.info("CURRENT DIR: %s", os.getcwd())
+
+        if os.path.isdir('lambdas'):
+            base_path = ''
+        elif os.path.isdir('backend'):
+            base_path = 'backend/'
+        elif os.path.isdir('../../lambdas'):
+            base_path = '../../'
         else:
-            path = '../../'
+            base_path = '../../../'
 
-        with open(f"{path}scalars.graphql") as f:
-            self.schema = f.read()
+        log.info("PATH: %s", base_path)
 
-        with open(f"{path}schema.graphql") as f:
-            self.schema = f"{self.schema} {f.read()}"
+        self.schema = gql_utils.get_graphql_schema(base_path=base_path)
+        log.info(f"""Effective Schema:
+        
+        {self.schema}
+        
+        """)
 
     def call_lambda(self, payload: dict, function_name: str):
         json_payload = json.dumps(payload)
@@ -91,28 +105,33 @@ def create_user(ctx: TestContext,
                 username: str = None,
                 password: str = None,
                 groups: list[str] = None,
-                do_auth: bool = True):
+                do_auth: bool = True,
+                add_user_to_db: bool = True):
 
     if username is None:
         username = generate_username()[0]
 
     if password is None:
-        password = uuid4()
+        password = f"A{uuid4()}"
 
     if groups is None:
         groups = ALL_GROUPS
 
+    email = f"{username}@example.com.invalid"
     payload = {
         "action": "create_user",
         "username": username,
-        "email": f"{username}@example.com.invalid",
+        "email": email,
         "password": password,
         "groups": groups,
+        "addUserToDb": add_user_to_db,
     }
 
     aws = AWSUtils(ctx)
-    result = aws.call_lambda(payload=payload, function_name='example-local-devTestHelper')
-    user = User(username=username, password=password, user_pool_id=result['userPoolId'], client_id=result['clientId'])
+    result = aws.call_lambda(
+        payload=payload, function_name='example-local-devTestHelper')
+    user = User(username=username, password=password, email=email,
+                user_pool_id=result['userPoolId'], client_id=result['clientId'])
     if do_auth:
         user = authenticate(ctx=ctx, user=user)
     return user
@@ -130,24 +149,26 @@ def get_gql_client(ctx: TestContext, user: User) -> Client:
     )
     transport = AIOHTTPTransport(url=ctx.graphql_url, auth=auth)
     aws = AWSUtils(ctx=ctx)
-    return Client(transport=transport, fetch_schema_from_transport=False, schema=aws.schema)
-
-
-def query_gql(client: Client, query):
-    if isinstance(query, str):
-        q = gql(query)
-    else:
-        q = dsl_gql(query)
-
-    try:
-        result = client.execute(q)
-        log.debug(result)
-        return result
-    except TransportQueryError as e:
-        log.error(e)
-        return e.errors
+    return Client(transport=transport, fetch_schema_from_transport=False, schema=aws.schema, execute_timeout=20)
 
 
 def do_gql(ctx: TestContext, user: User, query):
     client = get_gql_client(ctx, user)
     return query_gql(client=client, query=query)
+
+
+def subscribe(query: str, ctx: TestContext, user: User, params: dict = None) -> Generator:
+    auth = AppSyncJWTAuthentication(
+        host=ctx.host,
+        jwt=user.token,
+    )
+    transport = AppSyncWebsocketsTransport(
+        url=ctx.graphql_ws, auth=auth, connect_timeout=60, close_timeout=60, ack_timeout=60)
+
+    client = Client(transport=transport,
+                    fetch_schema_from_transport=False,
+                    schema=AWSUtils(ctx=ctx).schema,
+                    execute_timeout=60
+                    )
+
+    return client.subscribe(gql(query), variable_values=params)

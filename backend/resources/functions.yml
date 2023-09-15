@@ -1,4 +1,7 @@
 dbsetup:
+  layers:
+    - !Ref CommonLambdaLayer
+    - !Ref AppLambdaLayer
   handler: lambdas/migrations/db_setup.handler
   timeout: 120
   package:
@@ -19,6 +22,10 @@ dbsetup:
         - !Ref DBAppSecret
 
 dbmigrations:
+  layers:
+    - !Ref CommonLambdaLayer
+    - !Ref AppLambdaLayer
+    - !Ref MigrationsLambdaLayer
   handler: lambdas/migrations/migrations.handler
   package:
     patterns:
@@ -36,6 +43,9 @@ dbmigrations:
       Resource: !Ref DBAppSecret
 
 users:
+  layers:
+    - !Ref CommonLambdaLayer
+    - !Ref AppLambdaLayer
   handler: lambdas/users.handler
   package:
     patterns:
@@ -43,6 +53,7 @@ users:
       - 'lambdas/models.py'
       - 'lambdas/dao/**'
       - 'lambdas/services/**'
+      - 'lambdas/utils/**'
       - '!**/__pycache__/**'
   environment:
     DB_APP_SECRET_ARN:
@@ -52,39 +63,12 @@ users:
       Action:
         - secretsmanager:GetSecretValue
       Resource: !Ref DBAppSecret
-
-devTestHelper:
-  handler: lambdas/dev/test_helper.handler
-  enabled: '"${self:provider.stage}" != "prod"'
-  iamRoleStatements:
-    - Effect: "Allow"
-      Action:
-        - cognito-idp:AdminCreateUser
-        - cognito-idp:AdminDeleteUser
-        - cognito-idp:AdminAddUserToGroup
-        - cognito-idp:AdminSetUserPassword
-      Resource: !GetAtt CognitoUserPoolUserPool.Arn
-    - Effect: "Allow"
-      Action:
-        - secretsmanager:GetSecretValue
-      Resource: !Ref DBAppSecret
-  package:
-    patterns:
-      - 'lambdas/dev/test_helper.py'
-      - 'lambdas/models.py'
-      - 'lambdas/dao/**'
-      - 'lambdas/services/user_service.py'
-      - '!**/__pycache__/**'
-  environment:
-    USERPOOL_ID:
-      Ref: CognitoUserPoolUserPool
-    CLIENT_ID:
-      Ref: UserClient
-    DB_APP_SECRET_ARN:
-      Ref: DBAppSecret
 
 cognitoHooks:
   handler: lambdas/cognito_hooks.handler
+  layers:
+    - !Ref CommonLambdaLayer
+    - !Ref AppLambdaLayer
   package:
     patterns:
       - 'lambdas/models.py'

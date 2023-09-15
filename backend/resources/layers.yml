@@ -1,0 +1,40 @@
+layers:
+  common:
+    path: layers/common
+    compatibleRuntimes:
+      - python3.11
+    description: "Common dependencies"
+    package:
+      patterns:
+        - './**'
+        - '!./requirements.txt'
+  
+  app:
+    path: layers/app
+    compatibleRuntimes:
+      - python3.11
+    description: "App dependencies"
+    package:
+      patterns:
+        - './**'
+        - '!./requirements.txt'
+  
+  migrations:
+    path: layers/migrations
+    compatibleRuntimes:
+      - python3.11
+    description: "Database migrations dependencies"
+    package:
+      patterns:
+        - './**'
+        - '!./requirements.txt'
+
+  graphql:
+    path: layers/graphql
+    compatibleRuntimes:
+      - python3.11
+    description: "graphql dependencies"
+    package:
+      patterns:
+        - './**'
+        - '!./requirements.txt'
