@@ -20,11 +20,8 @@ Resources:
         AllowAdminCreateUserOnly: true
       UsernameConfiguration:
         CaseSensitive: false
-      UserPoolTags: ${file(../commonResources/defaultTags.yml):TagsObject}
 
   UserClient:
-    DependsOn:
-      - IDPProvider
     Type: AWS::Cognito::UserPoolClient
     Properties:
       ClientName: user-pool-ui
@@ -70,7 +67,6 @@ Resources:
         
   UserDomain:
     Type: AWS::Cognito::UserPoolDomain
-    Condition: IsNotLocal
     Properties:
       UserPoolId: { Ref: CognitoUserPoolUserPool }
       Domain: ${self:service}-${self:provider.stage}

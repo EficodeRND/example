@@ -40,8 +40,6 @@ functions:
   - ${file(resources/functions.yml)}
 
 resources:
-  - Conditions:
-      IsNotLocal: !Not [!Equals ["${self:provider.stage}","local"]]
   - ${file(resources/cognito.yml)}
   - ${file(resources/cognitoGroups.yml)}
   - ${file(resources/iam.yml)}

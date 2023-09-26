@@ -3,13 +3,15 @@ On repository root run
 - `cd backend`
 - `python3.9 -m venv lambda_venv`
 - `source lambda_venv/bin/activate`
-- `pip install --platform=manylinux2014_x86_64 --only-binary=:all: -r requirements.txt --target lambda_venv/lib/python3.9/site-packages`
+- For ARM CPUs `pip install --platform=manylinux2014_aarch64 --only-binary=:all: -r requirements.txt --target lambda_venv/lib/python3.9/site-packages`
+- For x86 CPUs `pip install --platform=manylinux2014_x86_64 --only-binary=:all: -r requirements.txt --target lambda_venv/lib/python3.9/site-packages`
 - `deactivate`
 - `python3.9 -m venv venv`
 - `source venv/bin/activate`
 - `pip install -r requirements.txt`
 - `pip install -r requirements_dev.txt`
-- `yarn deploy`
+- For ARM CPUs `yarn deploy_arm`
+- For x86 CPUs `yarn deploy`
 - `invoke alltests`
 
 Check logs of generateReport lambda. 

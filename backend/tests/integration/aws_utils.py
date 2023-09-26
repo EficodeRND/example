@@ -97,7 +97,7 @@ def create_user(ctx: TestContext,
         username = generate_username()[0]
 
     if password is None:
-        password = uuid4()
+        password = f"A{uuid4()}"
 
     if groups is None:
         groups = ALL_GROUPS
@@ -111,8 +111,10 @@ def create_user(ctx: TestContext,
     }
 
     aws = AWSUtils(ctx)
-    result = aws.call_lambda(payload=payload, function_name='example-local-devTestHelper')
-    user = User(username=username, password=password, user_pool_id=result['userPoolId'], client_id=result['clientId'])
+    result = aws.call_lambda(
+        payload=payload, function_name='example-local-devTestHelper')
+    user = User(username=username, password=password,
+                user_pool_id=result['userPoolId'], client_id=result['clientId'])
     if do_auth:
         user = authenticate(ctx=ctx, user=user)
     return user
