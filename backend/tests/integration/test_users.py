@@ -18,7 +18,16 @@ def test_get_user_information(ctx):
 
     result = query_gql(client=client, query=query)
     assert result['user']['userName'] == user_1.username
-    assert result['user'].get('email') is None
+    assert result['user'].get('email') == user_1.email
+
+    client = get_gql_client(ctx=ctx, user=user_2)
+    ds: DSLSchema = DSLSchema(client.schema)
+    query = DSLQuery(
+        ds.Query.user().select(
+            ds.UserAccount.userName,
+            ds.UserAccount.email
+        )
+    )
 
     client = get_gql_client(ctx=ctx, user=user_2)
     result = query_gql(client=client, query=query)
