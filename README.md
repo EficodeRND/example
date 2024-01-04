@@ -11,8 +11,7 @@ On repository root run
 Result:
 test_users fails on `test_get_user_information` and `test_sysadmin_get_user_information`.
 
-Obs.: This latest localstack-pro image that this error does not happen is `sha256:fd995574675fea976a8ebd5325ed256bcc6cdb1d41167ab2304e5ffab27676ee`. 
-
+An exert from the error:
 ```
 content-type;host;x-amz-date;x-amz-target
 4cf4ba2d1e141720f04c197f74f68afd46f09e49a241c8cadab37dcff8d65627
@@ -37,3 +36,4 @@ b'{"__type": "ResourceNotFoundException", "message": "Unable to find user pool c
 2024-01-04 12:33:07,115 DEBUG (retryhandler.py:211) - No retry needed.
 ```
 
+Obs.: The latest localstack-pro docker image that this error does not happen is `sha256:fd995574675fea976a8ebd5325ed256bcc6cdb1d41167ab2304e5ffab27676ee`. 
