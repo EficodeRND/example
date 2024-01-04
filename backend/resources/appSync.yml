@@ -2,12 +2,16 @@
 appSync:
   name: "${self:service}-${self:provider.stage}-graphql"
   xrayEnabled: true
+  logging:
+    level: ALL
   authentication:
     type: AMAZON_COGNITO_USER_POOLS
     config:
       defaultAction: ALLOW
       userPoolId: !Ref CognitoUserPoolUserPool
-  schema: schema.graphql
+  additionalAuthentications:
+    - type: AWS_IAM
+  schema: gql_schema/*.graphql
   dataSources:
     Lambda_users:
       type: AWS_LAMBDA
@@ -15,5 +19,6 @@ appSync:
       config:
         functionName: users
         serviceRoleArn: { Fn::GetAtt: [AppSyncLambdaServiceRole, Arn] }
+
   resolvers:
     - ${file(resources/resolvers/user.yml)}

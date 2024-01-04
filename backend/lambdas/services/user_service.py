@@ -1,11 +1,11 @@
 import logging as log
 from functools import wraps
 
-from lambdas import is_local
 from lambdas.dao import user_dao
-from lambdas.models import UserAccount
 from lambdas.services.db_manager import get_app_db
 from lambdas.utils.common import ServiceException, RequestException
+from lambdas.models import UserAccount
+from lambdas.utils.dev_utils import is_local
 
 db = get_app_db()
 
@@ -18,19 +18,17 @@ def get_user_info(user_name) -> dict:
 
 
 def create_or_update_user(user_name: str, user_attributes: dict):
-    org = organisation_dao.get_organisation(user_attributes["custom:user_organisation"])
     user = user_dao.find_user(user_name)
     name = _get_name(user_attributes)
     email = user_attributes["email"]
     if user is None:
         user = UserAccount(
-            user_name=user_name, name=name, email=email, organisation_id=org.id
-        )
+            user_name=user_name, name=name,
+            email=email)
         db.session.add(user)
     else:
         user.name = name
         user.email = email
-        user.organisation_id = org.id
 
     db.session.commit()
 

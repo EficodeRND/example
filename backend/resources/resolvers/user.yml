@@ -4,7 +4,6 @@ Query.user:
 Query.getUser:
   kind: UNIT
   dataSource: Lambda_users
-
 Mutation.acceptTermsAndConditions:
   kind: UNIT
   dataSource: Lambda_users

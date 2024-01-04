@@ -3,9 +3,10 @@ import boto3
 import logging as log
 
 from lambdas import init_lambda
-from lambdas.services.db_manager import with_db_session
+from lambdas.services.db_manager import with_db_session, get_app_db
 from lambdas.utils import validators
-from lambdas.services.user_service import delete_user
+from lambdas.models import UserAccount
+from lambdas.utils.common import RequestException
 
 aws_client = boto3.client(
     "cognito-idp", region_name=os.environ.get("AWS_REGION"))
@@ -18,7 +19,7 @@ def get_aws_list(values: list[str]):
     return f"[{result}]"
 
 
-def create_user(username, password, email, groups: list[str]):
+def create_user(username, password, email, groups: list[str], add_user_db: bool = True):
     user_pool_id = os.environ.get("USERPOOL_ID")
     client_id = os.environ.get("CLIENT_ID")
     aws_client.admin_create_user(
@@ -41,6 +42,17 @@ def create_user(username, password, email, groups: list[str]):
         Permanent=True
     )
 
+    if add_user_db is True:
+        db = get_app_db()
+
+        user = UserAccount(
+            user_name=username,
+            name=username,
+            email=email
+        )
+        db.session.add(user)
+        db.session.commit()
+
     return {'username': username, 'status': 'Created', 'userPoolId': user_pool_id, 'clientId': client_id}
 
 
@@ -49,7 +61,8 @@ def handler(event, _context):
     action = validators.get_event_value(
         event,
         "action",
-        allowed_values=["create_user", "delete_user"]
+        allowed_values=["create_user", "delete_user",
+                        "create_org", "delete_org"],
     )
 
     if action == "create_user":
@@ -58,19 +71,12 @@ def handler(event, _context):
         email = validators.get_event_value(event, "email")
         password = validators.get_event_value(event, "password")
         groups = validators.get_event_value(event, "groups")
+        add_user_db = event.get("addUserToDb", True)
         return create_user(username=username,
                            password=password,
                            email=email,
-                           groups=groups)
+                           groups=groups,
+                           add_user_db=add_user_db
+                           )
 
-    if action == "delete_user":
-        username = validators.get_event_value(event, "username")
-        log.debug("deleting user %s", username)
-        aws_client.admin_delete_user(
-            UserPoolId=os.environ.get("USERPOOL_ID"),
-            Username=username,
-        )
-        delete_user(username)
-        return "User deleted"
-
-    raise Exception("Unknown action")
+    raise RequestException("Unknown action")

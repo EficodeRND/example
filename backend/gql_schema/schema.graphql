@@ -6,11 +6,18 @@ type Result {
   message: String!
 }
 
+type PrivateData {
+  address: String!
+  phone: String!
+}
+
 type UserAccount {
   id: ID!
   userName: String!
   name: String!
-  email: String!
+  email: String
+  @aws_cognito_user_pools(cognito_groups: ["SYSADMIN"])
+  @aws_auth(cognito_groups: ["SYSADMIN"])
 }
 
 

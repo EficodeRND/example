@@ -13,7 +13,8 @@ POST_AUTH_PREFIX = "PostAuthentication"
 PREFIX = f"{ENVIRONMENT}_" if ENVIRONMENT is not None and ENVIRONMENT != '' else ''
 
 
-SUPPORTED_GROUPS = {'SYSADMIN'}
+SUPPORTED_GROUPS = {'SYSADMIN',
+                    'USER'}
 
 
 @with_db_session

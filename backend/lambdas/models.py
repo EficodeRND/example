@@ -146,8 +146,5 @@ class UserAccount(DbModel):
     def to_dict(self, show: list = None):
         show = show if show is not None else ['user_name',
                                               'name',
-                                              'email',
-                                              'organisation',
-                                              'organisation.name',
-                                              'organisation.display_name']
+                                              'email']
         return super().model_to_dict(show)

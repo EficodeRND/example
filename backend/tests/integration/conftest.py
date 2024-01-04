@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import boto3
 import pytest
 
-from lambdas.utils.common import LogManager, init_json_serialisation
+from utils.common import LogManager, init_json_serialisation
 
 
 @dataclass

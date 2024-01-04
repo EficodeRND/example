@@ -1,3 +1,4 @@
+import logging as log
 from lambdas import init_lambda
 from lambdas.models import UserAccount
 from lambdas.services import user_service
@@ -13,8 +14,11 @@ init_lambda()
 def handler(event, _context, user: UserAccount):
     request = event.get('info', {}).get('fieldName')
     if request == 'user':
+        log.info("Returning user %s", user.to_dict())
         return user.to_dict()
     if request == 'getUser':
         user_name = event['arguments']['userName']
-        return user_service.get_user_info(user_name)
+        user_dict = user_service.get_user_info(user_name)
+        log.info("Returning user %s", user.to_dict())
+        return user_dict
     raise ServiceException(f"Unknown request: '{request}')")
