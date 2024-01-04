@@ -12,6 +12,8 @@ provider:
     PYTHONPATH: '/var/task/lambdas:/opt/python:lambdas'
     LOG_LEVEL: "DEBUG"
     ENVIRONMENT: LOCAL
+    LS_LOG: trace
+    DEBUG: 1
 
 plugins:
   - serverless-plugin-conditional-functions
@@ -21,7 +23,6 @@ plugins:
   - serverless-appsync-plugin
 
 custom:
-  appSync: ${file(resources/appSync.yml):appSync}
   pythonRequirements:
     dockerizePip: true
     layer: true
@@ -41,6 +42,8 @@ custom:
 #    default: LocalZoneNames
 #  SAMLMetaDataUrl:
 #    default: http://example.invalid
+
+appSync: ${file(resources/appSync.yml):appSync}
 
 functions:
   - ${file(resources/functions.yml)}
@@ -101,3 +104,15 @@ resources:
             !GetAtt GraphQlApi.ApiId,
           ],
         ]
+
+package:
+  individually: true
+  patterns:
+    - '!**/**'
+    - 'lambdas/__init__.py'
+    - 'lambdas/utils/dt_utils.py'
+    - 'lambdas/utils/str_utils.py'
+    - 'lambdas/utils/validators.py'
+    - 'lambdas/utils/common.py'
+    - 'lambdas/services/db_manager.py'
+    - 'lambdas/services/secrets_service.py'

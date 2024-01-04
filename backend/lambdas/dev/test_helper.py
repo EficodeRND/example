@@ -1,12 +1,11 @@
-import logging as log
 import os
-
 import boto3
+import logging as log
 
 from lambdas import init_lambda
 from lambdas.services.db_manager import with_db_session
 from lambdas.utils import validators
-from services.user_service import delete_user
+from lambdas.services.user_service import delete_user
 
 aws_client = boto3.client(
     "cognito-idp", region_name=os.environ.get("AWS_REGION"))

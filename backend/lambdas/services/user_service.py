@@ -1,12 +1,11 @@
+import logging as log
 from functools import wraps
 
 from lambdas import is_local
-from lambdas.dao import user_dao, organisation_dao
+from lambdas.dao import user_dao
 from lambdas.models import UserAccount
 from lambdas.services.db_manager import get_app_db
 from lambdas.utils.common import ServiceException, RequestException
-
-import logging as log
 
 db = get_app_db()
 

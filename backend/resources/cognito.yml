@@ -23,8 +23,6 @@ Resources:
       UserPoolTags: ${file(../commonResources/defaultTags.yml):TagsObject}
 
   UserClient:
-    DependsOn:
-      - IDPProvider
     Type: AWS::Cognito::UserPoolClient
     Properties:
       ClientName: user-pool-ui
